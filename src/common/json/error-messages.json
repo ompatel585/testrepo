@@ -1,0 +1,53 @@
+{
+  "INVALID_CREDENTIALS": "Invalid Credentials",
+  "INVALID_INPUT_FORMAT": "Invalid Input Format",
+  "INVALID_COMMA_SEPERATED_IDS": "Invalid Comma-Separated Ids",
+  "INVALID_FILTER": "Invalid Filter!",
+  "WORK_MESSAGES": {
+    "WORK_NOT_PUBLISHED": "Work Not Published",
+    "GET_YOUR_WORK_VERIFIED": "Please Get Your Work Verified Before Publishing"
+  },
+  "PORTFOLIO_MESSAGES": {
+    "PORTFOLIO_ALREADY_EXISTS": "Portfolio Already Exists!"
+  },
+  "AUTH_MESSAGES": {
+    "INVALID_OTP": "Invalid Otp",
+    "INVALID_OTP_TOKEN": "Invalid Otp Token",
+    "EXPIRED_OTP": "Expired Otp",
+    "MOBILE_MESSAGES": {
+      "INVALID_MOBILE_OTP": "Invalid Mobile Otp!",
+      "EXPIRED_MOBILE_OTP": "Expired Mobile Otp!",
+      "INVALID_MOBILE_TOKEN": "Invalid Mobile Token!"
+    },
+    "EMAIL_MESSAGES": {
+      "INVALID_EMAIL_OTP": "Invalid Email Otp!",
+      "EXPIRED_EMAIL_OTP": "Expired Email Otp!",
+      "INVALID_EMAIL_TOKEN": "Invalid Email Token!"
+    },
+    "OAUTH_MESSAGES": {
+      "INVALID_GOOGLE_TOKEN": "Invalid Google Token!",
+      "INVALID_GOOGLE_ACCOUNT": "No Account Found With This Gmail!",
+      "INVALID_FACEBOOK_TOKEN": "Invalid Facebook Token!",
+      "INVALID_FACEBOOK_ACCOUNT": "No Account Found With This Email"
+    },
+    "PASSWORD_MESSAGES": {
+      "INVALID_PASSWORD_TOKEN": "Invalid Password Token",
+      "EXPIRED_PASSWORD_TOKEN": "Expired Password Token",
+      "OLD_NEW_PASSWORD_CANNOT_BE_SAME": "Old Password And New Password Cannot Be The Same",
+      "NEW_CONFIRM_NOT_MATCHING": "New password and confirm password must match"
+    },
+    "CAPTCHA_ERROR_MESSAGES": {
+      "INVALID_CAPTCHA": "Invalid Captcha",
+      "CAPTCHA_VERIFICATION_FAILED": "Captcha Verification Failed",
+      "MISSING_INPUT_RESPONSE": "missing-input-response",
+      "INVALID_INPUT_RESPONSE": "invalid-input-response"
+    },
+    "NEW_USER": {
+      "VALIDATION": "new user validation failed",
+      "NO_ROLE": "Access denied. Your role is not enabled for ProConnect. Please contact your administrator."
+    }
+  },
+  "USER_MESSAGES": {
+    "USER_NOT_FOUND": "user not found!"
+  }
+}

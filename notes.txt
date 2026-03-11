@@ -1,0 +1,57 @@
+1) create user =>
+{
+    id: auto
+    userId: studentID
+    email: email
+    userName: studentName
+    -----------
+    password: randomPass
+    role: student
+    OrganizationId: null
+}
+
+2) profile => {
+    id: auto
+    zone: zone
+    region: region
+    instituteName: instituteName
+    firstname: studentName
+    email: email
+    mobile: null
+    userReferenceId: usedId
+}
+================================================================================================
+3) Work => {
+    workId: auto
+    ?: projectId
+    workTitle: projectName
+    workThumbnail:ImageThumb
+    link: videoLink
+}
+4)View =>{
+    viewdByUserName: view users
+    viewdBy: viewuserId
+    isViewed: 0| 1
+}
+
+5) like =>{
+    likedByUserName: liked users
+    likedBy: likeduserId
+    isLiked: 0 | 1
+}
+{
+    zone: zone
+    region: region
+    instituteName: instituteName
+    userId: studentID
+    userName: studentName
+    firstname: studentName
+    email: email
+    workId: projectId
+    workTitle: projectName
+    workThumbnail:ImageThumb
+    link: videoLink
+    viewdByUserName: view users
+    likedBy: like user
+    workViewed 0|1: User View
+} 

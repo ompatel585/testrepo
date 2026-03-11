@@ -1,0 +1,12 @@
+# Node-related
+node_modules
+npm-debug.log
+package-lock.json
+
+# environment configs
+.env.*
+
+# Docker & Compose files (not needed inside image)
+docker-compose*.yml
+DockerCompose*.yml
+.dockerignore

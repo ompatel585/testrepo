@@ -1,0 +1,96 @@
+def postGitHubStatus(String status, String description, String COMMIT_SHA) {
+    script {
+        def payload = """
+        {
+          "state": "${status}",
+          "target_url": "${env.BUILD_URL}",
+          "description": "${description}",
+          "context": "CI/CD"
+        }
+        """
+        withCredentials([string(credentialsId: 'INFINITYSTACX_TOKEN', variable: 'GITHUB_TOKEN')]) {
+            sh """
+                curl -X POST \
+                     -H "Authorization: token \$GITHUB_TOKEN" \
+                     -H "Content-Type: application/json" \
+                     -d '${payload}' \
+                     ${env.REPO_URL}/statuses/${COMMIT_SHA}
+            """
+        }
+    }
+}
+
+pipeline {
+    agent any
+    environment {
+        ENVIRONMENT = "${env.ENVIRONMENT}"
+        // GIT_EMAIL = credentials("${ENVIRONMENT}_GIT_EMAIL_ID")
+        // IP_ADDRESS = credentials("${ENVIRONMENT}_PROCONNECT_API_IP")
+        REMOTE_DIRECTORY = "${env.STUDENT_PORTAL_API_PROJECT_PATH}"
+        REPO_URL = 'https://api.github.com/repos/AptechHO/Student-Api'
+        GIT_CREDENTIALS_ID = 'infinityStacX'
+    }
+    stages {
+        stage('Init') {
+            steps {
+                echo 'Initialising...'
+                script {
+                    COMMIT_SHA = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                }
+                postGitHubStatus('pending', 'In Progress', COMMIT_SHA)
+            }
+        }
+        stage('Debug') {
+            steps {
+                script {
+                    env.each { key, value ->
+                        echo "${key} = ${value}"
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    def currBranch = "${ENVIRONMENT.toLowerCase()}"
+                    withCredentials([string(credentialsId: "${ENVIRONMENT}_PROCONNECT_API_IP", variable: 'IP_ADDRESS')]) {
+                        sshagent([ "${ENVIRONMENT}_STUDENT_PORTAL_API_SSH" ]) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ubuntu@${IP_ADDRESS} '
+                                    set -e
+                                    cd ${REMOTE_DIRECTORY}
+                                    git checkout ${currBranch}
+                                    git pull origin ${currBranch}
+                                    echo 'Installing dependencies...'
+                                    node -v
+                                    sudo npm install
+                                    sudo npm run build
+                                    sudo npm run stop
+                                    sudo npm run start
+                                '
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo "Pipeline succeeded! Triggering job 'STG-StudentBackendSuccess'"
+            build job: 'STG-StudentBackendSuccess', propagate: false, parameters: [
+                string(name: 'COMMIT_SHA', value: "${COMMIT_SHA}"),
+                string(name: 'ENVIRONMENT', value: "${env.ENVIRONMENT}"),
+                string(name: 'REPO_URL', value: "${env.REPO_URL}"),
+            ]
+        }
+        failure {
+            echo "Pipeline failed! Triggering job 'STG-StudentBackendFailed'."
+            build job: 'STG-StudentBackendFailed', propagate: false, parameters: [
+                string(name: 'COMMIT_SHA', value: "${COMMIT_SHA}"),
+                string(name: 'ENVIRONMENT', value: "${env.ENVIRONMENT}"),
+                string(name: 'REPO_URL', value: "${env.REPO_URL}"),
+            ]
+        }
+    }
+}
