@@ -58,6 +58,8 @@ import { EprojectModule } from './eproject/eproject.module';
 import { ReportModule } from './admin/report/report.module';
 import redisConfig from './common/config/redis.config';
 import { InfrastructureParametersModule } from './Infrastructure/Parameters/infrastructure-parameters.module';
+import { InfrastructureCategoryModule } from './Infrastructure/category/infrastructure-category.module';
+import { TemplateModule } from './Infrastructure/Templates/template.module';
 
 @Module({
   imports: [
@@ -123,6 +125,8 @@ import { InfrastructureParametersModule } from './Infrastructure/Parameters/infr
     EprojectModule,
     ReportModule,
     InfrastructureParametersModule,
+    InfrastructureCategoryModule,
+    TemplateModule
   ],
   controllers: [AppController],
   providers: [
