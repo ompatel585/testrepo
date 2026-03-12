@@ -1,25 +1,43 @@
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+import { Brand } from './brand.entity';
 
-@Entity({ name: 'infrastructure_category', schema: 'public' })
+// @Entity('InfrastructureCategory')
+@Entity({ name: 'infrastructureCategory', schema: 'public' })
 export class InfrastructureCategory {
-
   @PrimaryGeneratedColumn()
   id: number;
 
-  // allow null so TypeORM does not try to enforce NOT NULL during sync
-  @Column({ type: 'varchar', nullable: true })
-  name?: string;
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
 
-  @Column({ type: 'text', nullable: true })
-  description?: string;
+  @Column({ type: 'text' })
+  description: string;
 
-  @Column({ nullable: true })
-  brandId?: number;
+  // ✅ FK column
+  @Column({ type: 'int', nullable: true })
+  brandId: number;
 
-  @Column({ default: 1 })
+  // ✅ relation
+  @ManyToOne(() => Brand, (brand) => brand.id, { nullable: true })
+  @JoinColumn({ name: 'brandId' })
+  brand: Brand;
+
+  // ✅ status
+  @Column({ type: 'int', default: 1 })
   status: number;
+
+  // ✅ timestamps
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
