@@ -1,15 +1,21 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { InfrastructureParametersController } from './infrastructure-parameters.controller';
 import { InfrastructureParametersService } from './infrastructure-parameters.service';
-import { InfrastructureCategory } from './entities/infrastructure-category.entity';
-import { InfrastructureParameter } from './entities/infrastructure-parameter.entity';
+
+import { InfrastructureParameter } from '../../common/entities/infrastructure-parameter.entity';
+import { InfrastructureSubParameter } from '../../common/entities/infrastructure-sub-parameter.entity';
+import { InfrastructureCategory } from '../../common/entities/infrastructure-category.entity';
+import { Brand } from '../../common/entities/brand.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      InfrastructureCategory,
       InfrastructureParameter,
+      InfrastructureSubParameter,
+      InfrastructureCategory,
+      Brand,
     ]),
   ],
   controllers: [InfrastructureParametersController],
@@ -17,4 +23,3 @@ import { InfrastructureParameter } from './entities/infrastructure-parameter.ent
   exports: [InfrastructureParametersService],
 })
 export class InfrastructureParametersModule {}
-

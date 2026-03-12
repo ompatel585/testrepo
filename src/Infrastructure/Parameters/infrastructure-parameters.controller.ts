@@ -1,24 +1,68 @@
-import { Controller, Post, Get, Body, Param, ParseIntPipe, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  ParseIntPipe,
+  HttpStatus,
+  Query,
+  HttpException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+
 import { InfrastructureParametersService } from './infrastructure-parameters.service';
 import { CreateInfrastructureParameterDto } from './dto/create-infrastructure-parameter.dto';
 import { ResponseHelper } from '../../common/helper/response.helper';
 
-@Controller('infrastructure-parameters')
+@Controller(['infrastructure/parameter', 'infrastructure-parameters'])
 export class InfrastructureParametersController {
+
   constructor(
     private readonly infrastructureParametersService: InfrastructureParametersService,
   ) {}
 
   @Post()
   async create(@Body() createDto: CreateInfrastructureParameterDto) {
-    const result = await this.infrastructureParametersService.create(createDto);
-    return new ResponseHelper(result);
+    try {
+      const result = await this.infrastructureParametersService.create(createDto);
+      return new ResponseHelper(result);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create infrastructure parameter');
+    }
   }
 
   @Get()
-  async findAll() {
-    const result = await this.infrastructureParametersService.findAll();
-    return new ResponseHelper(result);
+  async findAll(@Query('subparameter') subparameter?: string) {
+    try {
+      const result = await this.infrastructureParametersService.findAll(subparameter);
+      return new ResponseHelper(result);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch infrastructure parameters');
+    }
+  }
+
+  @Get('brand/:id')
+  async findByBrand(
+    @Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }))
+    id: number,
+    @Query('subparameter') subparameter?: string,
+  ) {
+    try {
+      const result = await this.infrastructureParametersService.findByBrand(id, subparameter);
+      return new ResponseHelper(result);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch parameters by brand');
+    }
   }
 
   @Get(':id')
@@ -26,8 +70,14 @@ export class InfrastructureParametersController {
     @Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }))
     id: number,
   ) {
-    const result = await this.infrastructureParametersService.findOne(id);
-    return new ResponseHelper(result);
+    try {
+      const result = await this.infrastructureParametersService.findOne(id);
+      return new ResponseHelper(result);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch infrastructure parameter');
+    }
   }
 }
-

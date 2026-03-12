@@ -72,6 +72,7 @@ import { InfrastructureParametersModule } from './Infrastructure/Parameters/infr
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         ...configService.get('database'),
+        autoLoadEntities: true,
         // logging: ['query', 'error', 'warn', 'schema', 'migration', 'log'],
         // logger: 'advanced-console',
       }),

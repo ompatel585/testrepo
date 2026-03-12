@@ -1,96 +1,165 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { InfrastructureCategory } from './entities/infrastructure-category.entity';
-import { InfrastructureParameter } from './entities/infrastructure-parameter.entity';
-import {
-  CreateInfrastructureParameterDto,
-  SubParameterDto,
-} from './dto/create-infrastructure-parameter.dto';
+
+import { InfrastructureParameter } from '../../common/entities/infrastructure-parameter.entity';
+import { InfrastructureSubParameter } from '../../common/entities/infrastructure-sub-parameter.entity';
+import { InfrastructureCategory } from '../../common/entities/infrastructure-category.entity';
+import { Brand } from '../../common/entities/brand.entity';
+
+import { CreateInfrastructureParameterDto } from './dto/create-infrastructure-parameter.dto';
 
 @Injectable()
 export class InfrastructureParametersService {
+
   constructor(
-    @InjectRepository(InfrastructureCategory)
-    private readonly categoryRepository: Repository<InfrastructureCategory>,
     @InjectRepository(InfrastructureParameter)
-    private readonly parameterRepository: Repository<InfrastructureParameter>,
+    private readonly parameterRepo: Repository<InfrastructureParameter>,
+
+    @InjectRepository(InfrastructureSubParameter)
+    private readonly subParameterRepo: Repository<InfrastructureSubParameter>,
+
+    @InjectRepository(InfrastructureCategory)
+    private readonly categoryRepo: Repository<InfrastructureCategory>,
+
+    @InjectRepository(Brand)
+    private readonly brandRepo: Repository<Brand>,
   ) {}
 
-  async create(
-    createDto: CreateInfrastructureParameterDto,
-  ): Promise<{ message: string; data: any }> {
-    const { brandId, categoryId, parameterName, subParameters } = createDto;
+  async create(dto: CreateInfrastructureParameterDto) {
 
-    // If categoryId is provided, use existing category or create new
-    let category: InfrastructureCategory;
+  const { brandId, categoryId, parameterName, subParameters } = dto;
 
-    if (categoryId) {
-      category = await this.categoryRepository.findOne({
-        where: { id: categoryId },
-      });
-      if (!category) {
-        throw new NotFoundException(`Category with id ${categoryId} not found`);
-      }
-    }
-
-    // Create new category if parameterName is provided
-    if (parameterName) {
-      category = this.categoryRepository.create({
-        name: parameterName,
-        brandId: brandId,
-      });
-      category = await this.categoryRepository.save(category);
-    }
-
-    // If no category exists at this point, throw error
-    if (!category) {
-      throw new NotFoundException('Category is required');
-    }
-
-    // Process subParameters
-    const createdParameters = [];
-
-    for (const subParam of subParameters) {
-      const paramData: Partial<InfrastructureParameter> = {
-        brandId: subParam.brandId ?? brandId,
-        infrastructureCategoryId: category.id,
-        infrastructureParameterName: subParam.infrastructureParameterName,
-        name: subParam.name,
-        type: subParam.type,
-      };
-
-      const param = this.parameterRepository.create(paramData);
-      const savedParam = await this.parameterRepository.save(param);
-      createdParameters.push(savedParam);
-    }
-
-    return {
-      message: 'Infrastructure parameters created successfully',
-      data: {
-        category,
-        parameters: createdParameters,
-      },
-    };
+  if (!categoryId) {
+    throw new BadRequestException('categoryId is required');
   }
 
-  async findAll(): Promise<InfrastructureCategory[]> {
-    return await this.categoryRepository.find({
-      relations: ['parameters'],
-    });
+  if (!parameterName) {
+    throw new BadRequestException('parameterName is required');
   }
 
-  async findOne(id: number): Promise<InfrastructureCategory> {
-    const category = await this.categoryRepository.findOne({
-      where: { id },
-      relations: ['parameters'],
-    });
+  const existing = await this.parameterRepo.findOne({
+    where: {
+      brandId,
+      infrastructureCategoryId: categoryId,
+      infrastructureParameterName: parameterName,
+    },
+  });
 
-    if (!category) {
-      throw new NotFoundException(`Category with id ${id} not found`);
-    }
-
-    return category;
+  if (existing) {
+    throw new ConflictException(`Parameter "${parameterName}" already exists`);
   }
+
+  // ---- duplicate subParameter validation ----
+
+  const names = subParameters.map((s) => s.name.trim().toLowerCase());
+
+  const duplicates = names.filter(
+    (name, index) => names.indexOf(name) !== index,
+  );
+
+  if (duplicates.length > 0) {
+    throw new ConflictException(
+      `Duplicate subParameter name: ${duplicates[0]}`,
+    );
+  }
+
+  // ---- create parameter ----
+
+  const parameter = this.parameterRepo.create({
+    brandId,
+    infrastructureCategoryId: categoryId,
+    infrastructureParameterName: parameterName,
+  });
+
+  const savedParameter = await this.parameterRepo.save(parameter);
+
+  const subs = subParameters.map((sub) =>
+    this.subParameterRepo.create({
+      infrastructureParameterId: savedParameter.id,
+      subParameterName: sub.name,
+      subParameterType: sub.type,
+    }),
+  );
+
+  await this.subParameterRepo.save(subs);
+
+  return {
+    message: 'Infrastructure parameter created successfully',
+    data: savedParameter,
+  };
 }
 
+  async findAll(subparameter?: string) {
+
+    const rows = await this.parameterRepo.find({
+      relations: ['brand', 'subParameters', 'category'],
+    });
+
+    if (subparameter === 'true') {
+
+      return rows.map((p) => ({
+        brand: p.brand || {},
+        parameterName: p.infrastructureParameterName,
+        category: p.category || { id: p.infrastructureCategoryId },
+        subParameters: p.subParameters.map((s) => ({
+          name: s.subParameterName,
+          type: s.subParameterType,
+        })),
+      }));
+    }
+
+    return rows.map((p) => ({
+      brand: p.brand || {},
+      parameterName: p.infrastructureParameterName,
+      category: p.category || { id: p.infrastructureCategoryId },
+    }));
+  }
+
+  async findByBrand(brandId: number, subparameter?: string) {
+
+    const rows = await this.parameterRepo.find({
+      where: { brandId },
+      relations: ['brand', 'subParameters', 'category'],
+    });
+
+    if (subparameter === 'true') {
+
+      return rows.map((p) => ({
+        brand: p.brand || {},
+        parameterName: p.infrastructureParameterName,
+        category: p.category || { id: p.infrastructureCategoryId },
+        subParameters: p.subParameters.map((s) => ({
+          name: s.subParameterName,
+          type: s.subParameterType,
+        })),
+      }));
+    }
+
+    return rows.map((p) => ({
+      brand: p.brand || {},
+      parameterName: p.infrastructureParameterName,
+      category: p.category || { id: p.infrastructureCategoryId },
+    }));
+  }
+
+  async findOne(id: number) {
+
+    const parameter = await this.parameterRepo.findOne({
+      where: { id },
+      relations: ['brand', 'subParameters', 'category'],
+    });
+
+    if (!parameter) {
+      throw new NotFoundException(`Parameter with id ${id} not found`);
+    }
+
+    return parameter;
+  }
+}
