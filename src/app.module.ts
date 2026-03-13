@@ -60,6 +60,7 @@ import redisConfig from './common/config/redis.config';
 import { InfrastructureParametersModule } from './Infrastructure/Parameters/infrastructure-parameters.module';
 import { InfrastructureCategoryModule } from './Infrastructure/category/infrastructure-category.module';
 import { TemplateModule } from './Infrastructure/Templates/template.module';
+import { InfrastructureReviewNominationModule } from './Infrastructure/ReviewNomination/infrastructure-review-nomination.module';
 
 @Module({
   imports: [
@@ -126,7 +127,8 @@ import { TemplateModule } from './Infrastructure/Templates/template.module';
     ReportModule,
     InfrastructureParametersModule,
     InfrastructureCategoryModule,
-    TemplateModule
+    TemplateModule,
+    InfrastructureReviewNominationModule
   ],
   controllers: [AppController],
   providers: [
