@@ -25,3 +25,10 @@ export class CreateReviewNominationDto {
   @IsString()
   note?: string;
 }
+
+export class UpdateReviewNominationDto extends CreateReviewNominationDto {
+
+  @Type(() => Number)
+  @IsNumber()
+  id: number;
+}

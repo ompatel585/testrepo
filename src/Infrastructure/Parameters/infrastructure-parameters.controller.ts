@@ -14,6 +14,8 @@ import {
 import { InfrastructureParametersService } from './infrastructure-parameters.service';
 import { CreateInfrastructureParameterDto } from './dto/create-infrastructure-parameter.dto';
 import { ResponseHelper } from '../../common/helper/response.helper';
+import { Patch, Delete } from '@nestjs/common';
+import { UpdateInfrastructureParameterDto } from './dto/create-infrastructure-parameter.dto';
 
 @Controller(['infrastructure/parameter', 'infrastructure-parameters'])
 export class InfrastructureParametersController {
@@ -80,4 +82,38 @@ export class InfrastructureParametersController {
       throw new InternalServerErrorException('Failed to fetch infrastructure parameter');
     }
   }
+
+  @Patch(':id')
+async update(
+  @Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }))
+  id: number,
+  @Body() updateDto: UpdateInfrastructureParameterDto,
+) {
+  try {
+    const result = await this.infrastructureParametersService.update(id, updateDto);
+    return new ResponseHelper(result);
+  } catch (error) {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Failed to update infrastructure parameter');
+  }
+}
+
+@Delete(':id')
+async remove(
+  @Param('id', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }))
+  id: number,
+) {
+  try {
+    const result = await this.infrastructureParametersService.remove(id);
+    return new ResponseHelper(result);
+  } catch (error) {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Failed to delete infrastructure parameter');
+  }
+}
+
 }

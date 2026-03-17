@@ -35,3 +35,26 @@ export class CreateInfrastructureParameterDto {
   @Type(() => SubParameterDto)
   subParameters: SubParameterDto[];
 }
+
+export class UpdateInfrastructureParameterDto {
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  brandId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  categoryId?: number;
+
+  @IsOptional()
+  @IsString()
+  parameterName?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SubParameterDto)
+  subParameters?: SubParameterDto[];
+}

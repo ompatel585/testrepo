@@ -11,8 +11,13 @@ import {
 } from '@nestjs/common';
 
 import { InfrastructureReviewNominationService } from './infrastructure-review-nomination.service';
-import { CreateReviewNominationDto } from './dto/create-review-nomination.dto';
+// import { CreateReviewNominationDto } from './dto/create-review-nomination.dto';
 import { ResponseHelper } from '../../common/helper/response.helper';
+
+import { 
+  CreateReviewNominationDto,
+  UpdateReviewNominationDto
+} from './dto/create-review-nomination.dto';
 
 @Controller('infrastructure/review/nomination')
 export class InfrastructureReviewNominationController {
@@ -55,10 +60,10 @@ export class InfrastructureReviewNominationController {
   }
 
   @Patch()
-  async update(@Body() dto: CreateReviewNominationDto) {
-    const result = await this.service.update(dto);
-    return new ResponseHelper(result);
-  }
+async update(@Body() dto: UpdateReviewNominationDto) {
+  const result = await this.service.update(dto);
+  return new ResponseHelper(result);
+}
 
   @Post('submit')
   async submit(@Body() dto: CreateReviewNominationDto) {

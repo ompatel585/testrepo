@@ -180,4 +180,76 @@ export class InfrastructureParametersService {
 
     return parameter;
   }
+
+  async update(id: number, dto: any) {
+
+  const parameter = await this.parameterRepo.findOne({
+    where: { id },
+    relations: ['subParameters'],
+  });
+
+  if (!parameter) {
+    throw new NotFoundException(`Parameter with id ${id} not found`);
+  }
+
+  if (dto.brandId !== undefined) {
+    const brand = await this.brandRepo.findOne({ where: { id: dto.brandId } });
+    if (!brand) {
+      throw new NotFoundException(`Brand ${dto.brandId} not found`);
+    }
+    parameter.brandId = dto.brandId;
+  }
+
+  if (dto.categoryId !== undefined) {
+    const category = await this.categoryRepo.findOne({ where: { id: dto.categoryId } });
+    if (!category) {
+      throw new NotFoundException(`Category ${dto.categoryId} not found`);
+    }
+    parameter.infrastructureCategoryId = dto.categoryId;
+  }
+
+  if (dto.parameterName !== undefined) {
+    parameter.infrastructureParameterName = dto.parameterName;
+  }
+
+  await this.parameterRepo.save(parameter);
+
+  if (dto.subParameters) {
+
+    await this.subParameterRepo.delete({
+      infrastructureParameterId: id,
+    });
+
+    const subEntities = dto.subParameters.map((sub) =>
+      this.subParameterRepo.create({
+        infrastructureParameterId: id,
+        subParameterName: sub.name,
+        subParameterType: sub.type,
+      }),
+    );
+
+    await this.subParameterRepo.save(subEntities);
+  }
+
+  return {
+    message: 'Infrastructure parameter updated successfully',
+  };
+}
+
+async remove(id: number) {
+
+  const parameter = await this.parameterRepo.findOne({
+    where: { id },
+  });
+
+  if (!parameter) {
+    throw new NotFoundException(`Parameter with id ${id} not found`);
+  }
+
+  await this.parameterRepo.delete(id);
+
+  return {
+    message: 'Infrastructure parameter deleted successfully',
+  };
+}
 }

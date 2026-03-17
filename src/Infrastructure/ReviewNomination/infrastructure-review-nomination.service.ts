@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
@@ -11,7 +12,7 @@ import { Brand } from '../../common/entities/brand.entity';
 import { Centre } from '../../common/entities/centre.entity';
 import { InfrastructureReviewTemplate } from '../../common/entities/infrastructure-review-template.entity';
 
-import { CreateReviewNominationDto } from './dto/create-review-nomination.dto';
+import { CreateReviewNominationDto, UpdateReviewNominationDto } from './dto/create-review-nomination.dto';
 
 import { ReviewNominationStatus } from '../../common/entities/infrastructure-review-nomination.entity';
 
@@ -60,19 +61,23 @@ export class InfrastructureReviewNominationService {
 
   async findAll(startDate?: string, endDate?: string) {
 
-    const where: any = {};
+  const where: any = {};
 
-    if (startDate && endDate) {
-      where.createdAt = Between(new Date(startDate), new Date(endDate));
-    }
-
-    const rows = await this.repo.find({
-      where,
-      relations: ['brand', 'center', 'template'],
-    });
-
-    return rows;
+  if (startDate) {
+    where.createdAt = MoreThanOrEqual(new Date(startDate));
   }
+
+  if (endDate) {
+    where.dueDate = LessThanOrEqual(new Date(endDate));
+  }
+
+  const rows = await this.repo.find({
+    where,
+    relations: ['brand', 'center', 'template'],
+  });
+
+  return rows;
+}
 
   async findByBrand(id: number) {
 
@@ -94,24 +99,20 @@ export class InfrastructureReviewNominationService {
     return row;
   }
 
-  async update(dto: CreateReviewNominationDto) {
+  async update(dto: UpdateReviewNominationDto) {
 
-    const existing = await this.repo.findOne({
-      where: {
-        brandId: dto.brandId,
-        centerId: dto.centerId,
-        templateId: dto.templateId,
-      },
-    });
+  const existing = await this.repo.findOne({
+    where: { id: dto.id },
+  });
 
-    if (!existing) {
-      throw new NotFoundException('Nomination not found');
-    }
-
-    Object.assign(existing, dto);
-
-    return this.repo.save(existing);
+  if (!existing) {
+    throw new NotFoundException(`Nomination ${dto.id} not found`);
   }
+
+  Object.assign(existing, dto);
+
+  return this.repo.save(existing);
+}
 
   async submit(dto: CreateReviewNominationDto) {
 
